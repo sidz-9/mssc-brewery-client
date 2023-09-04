@@ -5,14 +5,21 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-// @Component
+@Component
 public class BlockingRestTemplateCustomizer implements RestTemplateCustomizer {
+
+    @Value("${test.connectionTimeout.value}")
+    private int connectionTimeout;
+    @Value("${test.socketTimeout.value}")
+    private int socketTimeout;
 
     public ClientHttpRequestFactory clientHttpRequestFactory() {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
@@ -21,8 +28,8 @@ public class BlockingRestTemplateCustomizer implements RestTemplateCustomizer {
 
         RequestConfig requestConfig = RequestConfig
                 .custom()
-                .setConnectionRequestTimeout(3000)  // 3000 milliseconds
-                .setSocketTimeout(3000)
+                .setConnectionRequestTimeout(connectionTimeout)  // 3000 milliseconds
+                .setSocketTimeout(socketTimeout)
                 .build();
 
         CloseableHttpClient httpClient = HttpClients
@@ -38,5 +45,13 @@ public class BlockingRestTemplateCustomizer implements RestTemplateCustomizer {
     @Override
     public void customize(RestTemplate restTemplate) {
         restTemplate.setRequestFactory(this.clientHttpRequestFactory());
+    }
+
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    public void setSocketTimeout(int socketTimeout) {
+        this.socketTimeout = socketTimeout;
     }
 }
